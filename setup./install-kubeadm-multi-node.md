@@ -66,8 +66,11 @@ domain_name=monlog.ir
 
 which docker || { curl -fsSL https://get.docker.com | bash; }
 {
+
 systemctl enable docker
+
 systemctl restart docker
+
 systemctl is-active --quiet docker && echo -e "\e[1m \e[96m docker service: \e[30;48;5;82m \e[5mRunning \e[0m" || echo -e "\e[1m \e[96m docker service: \e[30;48;5;196m \e[5mNot Running \e[0m"
 }
 
