@@ -13,7 +13,9 @@ apt install -y wget git vim bash-completion curl htop net-tools dnsutils \
                
      echo "nodes ip address"
 master1_ip=192.168.1.141
+
 master2_ip=192.168.1.146
+
 master3_ip=192.168.1.145
 worker1_ip=192.168.1.150
 worker2_ip=192.168.1.148
