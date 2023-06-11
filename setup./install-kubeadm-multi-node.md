@@ -1,6 +1,7 @@
 ## On all Servers 
 
 echo "Change hostname"
+
 hostnamectl set-hostname
 
 **"echo "update and upgrade"**
