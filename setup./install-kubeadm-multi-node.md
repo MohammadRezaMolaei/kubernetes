@@ -3,7 +3,7 @@
 echo "Change hostname"
 hostnamectl set-hostname
 
-"echo "update and upgrade"
+**"echo "update and upgrade"**
 
 apt update ; apt upgrade -y
 
