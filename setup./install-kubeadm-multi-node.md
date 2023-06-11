@@ -1,4 +1,4 @@
-# On all Servers 
+## On all Servers 
 echo "Change hostname"
 hostnamectl set-hostname
 
