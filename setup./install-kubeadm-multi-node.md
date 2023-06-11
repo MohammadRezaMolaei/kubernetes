@@ -65,6 +65,7 @@ systemctl restart docker
 systemctl is-active --quiet docker && echo -e "\e[1m \e[96m docker service: \e[30;48;5;82m \e[5mRunning \e[0m" || echo -e "\e[1m \e[96m docker service: \e[30;48;5;196m \e[5mNot Running \e[0m"
 }
 
+
 echo "Configur docker daemon "
 DOCKER_DEST=/etc/systemd/system/docker.service.d/
 if [ -d $DOCKER_DEST ] ; then
@@ -72,7 +73,8 @@ if [ -d $DOCKER_DEST ] ; then
 else
    mkdir -p /etc/systemd/system/docker.service.d/
    touch /etc/systemd/system/docker.service.d/override.conf
-fi   
+fi
+
 
 cat <<EOT > /etc/systemd/system/docker.service.d/override.conf
 [Service]
@@ -85,51 +87,64 @@ systemctl daemon-reload
 systemctl restart docker
 systemctl is-active --quiet docker && echo -e "\e[1m \e[96m docker service: \e[30;48;5;82m \e[5mRunning \e[0m" || echo -e "\e[1m \e[96m docker service: \e[30;48;5;196m \e[5mNot Running \e[0m"
 }
+    
 
 echo "how to fix WARNING: No swap limit support"
 cat /etc/default/grub
 echo "GRUB_CMDLINE_LINUX=\"cgroup_enable=memory swapaccount=1\"" >> /etc/default/grub
 cat /etc/default/grub
 sudo update-grub
+    
 
   Pre-configuration on all node
+    
   
   echo "Add sysctl settings"
 cat >>/etc/sysctl.d/kubernetes.conf<<EOF
 net.bridge.bridge-nf-call-ip6tables = 1
 net.bridge.bridge-nf-call-iptables = 1
 EOF
+    
 sysctl --system >/dev/null 2>&1
+    
 
 echo "Disable and turn off SWAP"
 sed -i '/swap/d' /etc/fstab
 swapoff -a
+    
 
 echo "Installing apt-transport-https pkg"
 apt-get update && apt-get install -y apt-transport-https ca-certificates curl software-properties-common
 curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+    
 
 cat <<EOF | sudo tee /etc/apt/sources.list.d/kubernetes.list
 deb https://apt.kubernetes.io/ kubernetes-xenial main
 EOF
+    
 ls -ltr /etc/apt/sources.list.d/kubernetes.list
 cat /etc/apt/sources.list.d/kubernetes.list
+    
 apt-get update -y
+    
 
 echo "Install Kubernetes kubeadm, kubelet and kubectl"
 apt-get install -y kubelet=1.21.0-00
 apt-get install -y kubectl=1.21.0-00
 apt-get install -y kubeadm=1.21.0-00
+    
 
 echo "check versions tools"
 kubelet --version
 kubeadm version
 kubectl version
+    
 
 echo "Enable and start kubelet service"
 systemctl enable kubelet
 systemctl start kubelet
 systemctl status kubelet
+    
   
   
  haproxy and keepalived install on loadbalancer nodes(master-slave)
@@ -138,6 +153,7 @@ systemctl status kubelet
  
   echo "install haproxy and keepalived service"
 apt install -y haproxy keepalived
+    
 
 echo "copy and move haproxy config"
 cat /etc/haproxy/haproxy.cfg
@@ -151,12 +167,14 @@ listen Stats-Page
   stats uri /
   stats show-legends
   stats show-node
+    
 
 frontend fe-apiserver
    bind 0.0.0.0:6443
    mode tcp
    option tcplog
    default_backend be-apiserver
+    
 
 backend be-apiserver
    mode tcp
@@ -185,6 +203,7 @@ netstat -ntlp | grep 8000
   
   
   On Master loadbalancer node
+    
   
   cat <<EOT > /etc/keepalived/keepalived.conf
 global_defs {
