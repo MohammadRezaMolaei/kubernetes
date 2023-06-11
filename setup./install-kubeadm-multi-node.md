@@ -12,7 +12,7 @@ apt install -y wget git vim bash-completion curl htop net-tools dnsutils \
                atop sudo software-properties-common telnet axel jq iotop 
                
                
-    * echo "nodes ip address" *
+    *echo "nodes ip address"*
 master1_ip=192.168.1.141
 
 master2_ip=192.168.1.146
