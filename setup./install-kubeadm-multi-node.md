@@ -2,7 +2,7 @@
 echo "Change hostname"
 hostnamectl set-hostname
 
-echo "update and upgrade"
+<span style="color:red"> **echo "update and upgrade"** </span>
 apt update ; apt upgrade -y
 
 echo "install tools"
