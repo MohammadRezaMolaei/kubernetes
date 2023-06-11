@@ -1,9 +1,10 @@
 ## On all Servers 
+
 echo "Change hostname"
 hostnamectl set-hostname
 
-**echo "update and upgrade"**
-[My Link](https://google.com)
+"echo "update and upgrade"
+
 apt update ; apt upgrade -y
 
 echo "install tools"
@@ -96,7 +97,7 @@ cat /etc/default/grub
 sudo update-grub
     
 
-  Pre-configuration on all node
+ # Pre-configuration on all node
     
   
   echo "Add sysctl settings"
