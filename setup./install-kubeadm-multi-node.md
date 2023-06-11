@@ -17,24 +17,41 @@ master1_ip=192.168.1.141
 master2_ip=192.168.1.146
 
 master3_ip=192.168.1.145
+
 worker1_ip=192.168.1.150
+
 worker2_ip=192.168.1.148
+
 worker3_ip=192.168.1.147
+
 lb_api1_ip=192.168.1.154
+
 lb_api2_ip=192.168.1.155
+
 lb_ingress1_ip=192.168.1.157
+
 lb_ingress2_ip=192.168.1.163
+
 vip_api=192.168.1.44
+
 vip_ingress=192.168.1.45
+
 storage_ip=192.168.1.158
+
 
 echo "nodes name"
 master1_name=master1
+
 master2_name=master2
+
 master3_name=master3
+
 worker1_name=worker1
+
 worker2_name=worker2
+
 worker3_name=worker3
+
 vip_api_name=api
 
 echo "domain name"
