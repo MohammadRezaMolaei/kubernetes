@@ -1,6 +1,7 @@
 ## On all Servers 
 
 echo "Change hostname"
+
 hostnamectl set-hostname
 
 **"echo "update and upgrade"**
@@ -12,7 +13,8 @@ apt install -y wget git vim bash-completion curl htop net-tools dnsutils \
                atop sudo software-properties-common telnet axel jq iotop 
                
                
-   echo "nodes ip address"
+   **echo "nodes ip address"** 
+   
 master1_ip=192.168.1.141
 
 master2_ip=192.168.1.146
@@ -40,7 +42,8 @@ vip_ingress=192.168.1.45
 storage_ip=192.168.1.158
 
 
-*echo "nodes name"*
+**echo "nodes name"**
+
 master1_name=master1
 
 master2_name=master2
@@ -55,10 +58,12 @@ worker3_name=worker3
 
 vip_api_name=api
 
-echo "domain name"
+**echo "domain name"**
+
 domain_name=monlog.ir       
 
-echo -e "Docker Installation" 
+**echo -e "Docker Installation"**
+
 which docker || { curl -fsSL https://get.docker.com | bash; }
 {
 systemctl enable docker
@@ -67,7 +72,8 @@ systemctl is-active --quiet docker && echo -e "\e[1m \e[96m docker service: \e[3
 }
 
 
-echo "Configur docker daemon "
+**echo "Configur docker daemon "**
+
 DOCKER_DEST=/etc/systemd/system/docker.service.d/
 if [ -d $DOCKER_DEST ] ; then
    echo "file exist"
@@ -77,7 +83,7 @@ else
 fi
 
 
-cat <<EOT > /etc/systemd/system/docker.service.d/override.conf
+cat <<EOT > /etc/systemd/system/docker.service.d/override.conf**
 [Service]
 ExecStart=
 ExecStart=/usr/bin/dockerd --log-opt max-size=100m --log-opt max-file=5
@@ -100,7 +106,8 @@ sudo update-grub
  # Pre-configuration on all node
     
   
-  echo "Add sysctl settings"
+  **echo "Add sysctl settings"**
+  
 cat >>/etc/sysctl.d/kubernetes.conf<<EOF
 net.bridge.bridge-nf-call-ip6tables = 1
 net.bridge.bridge-nf-call-iptables = 1
