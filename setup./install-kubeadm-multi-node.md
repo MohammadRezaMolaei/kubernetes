@@ -78,32 +78,56 @@ systemctl is-active --quiet docker && echo -e "\e[1m \e[96m docker service: \e[3
 **echo "Configur docker daemon "**
 
 DOCKER_DEST=/etc/systemd/system/docker.service.d/
+
 if [ -d $DOCKER_DEST ] ; then
+
    echo "file exist"
+   
 else
+
    mkdir -p /etc/systemd/system/docker.service.d/
+   
    touch /etc/systemd/system/docker.service.d/override.conf
+   
 fi
+
 
 
 cat <<EOT > /etc/systemd/system/docker.service.d/override.conf**
 [Service]
+  
 ExecStart=
+  
 ExecStart=/usr/bin/dockerd --log-opt max-size=100m --log-opt max-file=5
+  
 EOT
+  
 cat /etc/systemd/system/docker.service.d/override.conf
+  
 {
+  
 systemctl daemon-reload
+  
 systemctl restart docker
-systemctl is-active --quiet docker && echo -e "\e[1m \e[96m docker service: \e[30;48;5;82m \e[5mRunning \e[0m" || echo -e "\e[1m \e[96m docker service: \e[30;48;5;196m \e[5mNot Running \e[0m"
+  
+systemctl is-active --quiet docker && echo -e "\e[1m \e[96m docker service: \e[30;48;5;82m \e[5mRunning \e[0m" || echo -e "\e[1m \e[96m docker service: \e[30;48;5;196m
+  
+ \e[5mNot Running \e[0m"
+  
 }
+  
     
 
 echo "how to fix WARNING: No swap limit support"
+  
 cat /etc/default/grub
+  
 echo "GRUB_CMDLINE_LINUX=\"cgroup_enable=memory swapaccount=1\"" >> /etc/default/grub
+  
 cat /etc/default/grub
+  
 sudo update-grub
+  
     
 
  # Pre-configuration on all node
@@ -112,49 +136,76 @@ sudo update-grub
   **echo "Add sysctl settings"**
   
 cat >>/etc/sysctl.d/kubernetes.conf<<EOF
+  
 net.bridge.bridge-nf-call-ip6tables = 1
+  
 net.bridge.bridge-nf-call-iptables = 1
+  
 EOF
+  
     
 sysctl --system >/dev/null 2>&1
     
 
 echo "Disable and turn off SWAP"
+  
 sed -i '/swap/d' /etc/fstab
+  
 swapoff -a
+  
     
 
 echo "Installing apt-transport-https pkg"
+  
 apt-get update && apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+  
 curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+  
     
 
 cat <<EOF | sudo tee /etc/apt/sources.list.d/kubernetes.list
+  
 deb https://apt.kubernetes.io/ kubernetes-xenial main
+  
 EOF
+  
     
 ls -ltr /etc/apt/sources.list.d/kubernetes.list
+  
 cat /etc/apt/sources.list.d/kubernetes.list
+  
     
 apt-get update -y
     
 
 echo "Install Kubernetes kubeadm, kubelet and kubectl"
+  
 apt-get install -y kubelet=1.21.0-00
+  
 apt-get install -y kubectl=1.21.0-00
+  
 apt-get install -y kubeadm=1.21.0-00
+  
     
 
 echo "check versions tools"
+  
 kubelet --version
+  
 kubeadm version
+  
 kubectl version
+  
     
 
 echo "Enable and start kubelet service"
+  
 systemctl enable kubelet
+  
 systemctl start kubelet
+  
 systemctl status kubelet
+  
     
   
   
@@ -163,53 +214,93 @@ systemctl status kubelet
   
  
   echo "install haproxy and keepalived service"
+  
 apt install -y haproxy keepalived
     
 
 echo "copy and move haproxy config"
+  
 cat /etc/haproxy/haproxy.cfg
+  
 cat <<EOT >> /etc/haproxy/haproxy.cfg
+  
 listen Stats-Page
+  
   bind *:8000
+  
   mode http
+  
+ 
   stats enable
+  
   stats hide-version
+  
   stats refresh 10s
+  
   stats uri /
+  
   stats show-legends
+  
   stats show-node
+  
     
 
 frontend fe-apiserver
+  
    bind 0.0.0.0:6443
+  
    mode tcp
+  
    option tcplog
+  
    default_backend be-apiserver
+  
     
 
 backend be-apiserver
+  
    mode tcp
+  
    option tcp-check
+  
    balance roundrobin
+  
    default-server inter 10s downinter 5s rise 2 fall 2 slowstart 60s maxconn 250 maxqueue 256 weight 100
+  
    server control-plane-1 ${master1_ip}:6443 check
+  
    server control-plane-2 ${master2_ip}:6443 check
+  
    server control-plane-3 ${master3_ip}:6443 check
+  
 EOT
+  
 cat /etc/haproxy/haproxy.cfg
+  
 
 echo "check haproxy config file"
+  
 haproxy -c -f /etc/haproxy/haproxy.cfg
+  
 
 echo "Enable and start haproxy service"
+  
 {
 systemctl enable haproxy
+  
 systemctl restart haproxy
-systemctl is-active --quiet haproxy && echo -e "\e[1m \e[96m haproxy service: \e[30;48;5;82m \e[5mRunning \e[0m" || echo -e "\e[1m \e[96m docker service: \e[30;48;5;196m \e[5mNot Running \e[0m"
+  
+systemctl is-active --quiet haproxy && echo -e "\e[1m \e[96m haproxy service: \e[30;48;5;82m \e[5mRunning \e[0m" || echo -e "\e[1m \e[96m docker service: \e[30;48;5;196m 
+  
+  \e[5mNot Running \e[0m"
+  
 }
+  
 
 echo "check haproxy status page"
+  
 netstat -ntlp | grep 8000
+  
   
   
   
