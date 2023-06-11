@@ -3,6 +3,7 @@ echo "Change hostname"
 hostnamectl set-hostname
 
 **echo "update and upgrade"**
+[My Link](https://google.com)
 apt update ; apt upgrade -y
 
 echo "install tools"
