@@ -180,11 +180,11 @@ apt-get update -y
 
 echo "Install Kubernetes kubeadm, kubelet and kubectl"
   
-apt-get install -y kubelet=1.21.0-00
+apt-get install -y kubelet
   
-apt-get install -y kubectl=1.21.0-00
+apt-get install -y kubectl
   
-apt-get install -y kubeadm=1.21.0-00
+apt-get install -y kubeadm
   
     
 
@@ -308,44 +308,75 @@ netstat -ntlp | grep 8000
     
   
   cat <<EOT > /etc/keepalived/keepalived.conf
+  
 global_defs {
+  
    enable_script_security
+  
    script_user root
+  
 }
 
 vrrp_script check_haproxy {
+  
    script "killall -0 haproxy"
+  
    interval 2
+  
    weight 2
+  
    }
 
 vrrp_instance KUBE_API_LB {
+  
    state MASTER
+  
    interface ens160
+  
    virtual_router_id 51
+  
    priority 101
+  
    # The virtual ip address shared between the two loadbalancers
+  
    virtual_ipaddress {
+  
       ${vip_api}/32
+  
    }
+  
    track_script {
+  
       check_haproxy
+  
    }
+  
 }
+  
 EOT
+  
 cat /etc/keepalived/keepalived.conf
 
 echo "check keepalived config file"
+  
 keepalived -t -l -f /etc/keepalived/keepalived.conf
 
 echo "Enable and start keepalived service"
+  
 {
+  
 systemctl enable keepalived
+  
 systemctl restart keepalived
-systemctl is-active --quiet keepalived && echo -e "\e[1m \e[96m keepalived service: \e[30;48;5;82m \e[5mRunning \e[0m" || echo -e "\e[1m \e[96m docker service: \e[30;48;5;196m \e[5mNot Running \e[0m"
+  
+systemctl is-active --quiet keepalived && echo -e "\e[1m \e[96m keepalived service: \e[30;48;5;82m \e[5mRunning \e[0m" || echo -e "\e[1m \e[96m docker service:
+  
+  \e[30;48;5;196m \e[5mNot Running \e[0m"
+  
 }
 
 echo "check vip"
+  
 ip a | grep 192.168.1.44/32
   
   On Slave loadbalancer node
@@ -353,142 +384,267 @@ ip a | grep 192.168.1.44/32
   
   
  cat <<EOT > /etc/keepalived/keepalived.conf
+  
 global_defs {
+  
    enable_script_security
+  
    script_user root
+  
 }
+  
 # Script used to check if HAProxy is running
+  
 vrrp_script check_haproxy {
+  
    script "killall -0 haproxy"
+  
    interval 2
+  
    weight 2
+  
 }
 
 vrrp_instance KUBE_API_LB {
+  
    state BACKUP
+  
    interface ens160
+  
    virtual_router_id 51
+  
    priority 100
+  
    virtual_ipaddress {
+  
       ${vip_api}/32
+  
    }
+  
    track_script {
+  
       check_haproxy
+  
    }
+  
 }
+  
 EOT
 
 cat /etc/keepalived/keepalived.conf
+  
 echo "check keepalived config file"
+  
 keepalived -t -l -f /etc/keepalived/keepalived.conf
 
 echo "Enable and start keepalived service"
 {
+  
 systemctl enable keepalived
+  
 systemctl restart keepalived
-systemctl is-active --quiet keepalived && echo -e "\e[1m \e[96m keepalived service: \e[30;48;5;82m \e[5mRunning \e[0m" || echo -e "\e[1m \e[96m docker service: \e[30;48;5;196m \e[5mNot Running \e[0m"
+  
+systemctl is-active --quiet keepalived && echo -e "\e[1m \e[96m keepalived service: \e[30;48;5;82m \e[5mRunning \e[0m" || echo -e "\e[1m \e[96m docker service:
+  
+  \e[30;48;5;196m \e[5mNot Running \e[0m"
+  
 }
+  
 
 echo "check vip"
+  
 ip a | grep 192.168.1.44/32 
   
   
   kubeadm config on master1
   
   echo "create kubeadm config file"
+  
 cat <<EOT >/opt/kubeadm_config.yml
+  
 apiVersion: kubeadm.k8s.io/v1beta2
+  
 bootstrapTokens:
+  
 - groups:
+  
   - system:bootstrappers:kubeadm:default-node-token
+  
   token: abcdef.0123456789abcdef
+  
   ttl: 24h0m0s
+  
   usages:
+  
   - signing
+  
   - authentication
+  
 kind: InitConfiguration
+  
 localAPIEndpoint:
+  
   advertiseAddress: ${master1_ip}
+  
   bindPort: 6443
+  
 nodeRegistration:
+  
   criSocket: /var/run/dockershim.sock
+  
   name: master1
+  
   taints:
+  
   - effect: NoSchedule
+  
     key: node-role.kubernetes.io/master
+  
 ---
+  
 apiServer:
+  
   extraArgs:
+  
     authorization-mode: "Node,RBAC"
+  
   timeoutForControlPlane: 4m0s
+  
   certSANs:
+  
   - "${vip_api}"
+  
   - "${master1_ip}"
+  
   - "${master2_ip}"
+  
   - "${master3_ip}"
+  
   - "${vip_api_name}"
+  
   - "vip"
+  
   - "${master1_name}"
+  
   - "${master2_name}"
+  
   - "${master3_name}"
+  
   - "vip.${domain_name}"
+  
   - "${vip_api_name}.${domain_name}"
+  
   - "${master1_name}.${domain_name}"
+  
   - "${master2_name}.${domain_name}"
+  
   - "${master3_name}.${domain_name}"
+  
 apiVersion: kubeadm.k8s.io/v1beta2
+  
 certificatesDir: /etc/kubernetes/pki
+  
 clusterName: kubernetes
+  
 controllerManager: {}
+  
 dns:
+  
   type: CoreDNS
+  
 etcd:
+  
   local:
+  
     imageRepository: "quay.io/coreos"
+  
     imageTag: "v3.4.16"
+  
     dataDir: "/var/lib/etcd"
+  
     serverCertSANs:
+  
       - "${vip_api}"
+  
       - "${master1_ip}"
+  
       - "${master2_ip}"
+  
+ 
       - "${master3_ip}"
+  
       - "${vip_api_name}"
+  
       - "vip"
+  
       - "${master1_name}"
+  
       - "${master2_name}"
+  
       - "${master3_name}"
+  
       - "${vip_api_name}.${domain_name}"
+  
       - "${master1_name}.${domain_name}"
+  
       - "${master2_name}.${domain_name}"
+  
       - "${master3_name}.${domain_name}"
+  
     peerCertSANs:
+  
       - "${vip_api}"
+  
       - "${master1_ip}"
+  
       - "${master2_ip}"
+  
       - "${master3_ip}"
+  
       - "${vip_api_name}"
+  
       - "vip"
+  
       - "${master1_name}"
+  
       - "${master2_name}"
+  
       - "${master3_name}"
+  
       - "${vip_api_name}.${domain_name}"
+  
       - "${master1_name}.${domain_name}"
+  
       - "${master2_name}.${domain_name}"
+  
       - "${master3_name}.${domain_name}"
+  
 #kubernetesVersion: "v1.21.1"
+  
 imageRepository: "k8s.gcr.io"
+  
 useHyperKubeImage: false
+  
 kind: ClusterConfiguration
+  
 controlPlaneEndpoint: "vip.${domain_name}:6443"
+  
 networking:
+  
   serviceSubnet: "10.96.0.0/12"
+  
   podSubnet: "172.124.0.0/17"
+  
 EOT
+  
 cat /opt/kubeadm_config.yml
 
 echo "Get images list" 
+  
 kubeadm config images list --config /opt/kubeadm_config.yml
+  
 kubeadm config images pull --config /opt/kubeadm_config.yml
+  
 
 
   
