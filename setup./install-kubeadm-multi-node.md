@@ -83,6 +83,35 @@ cat /etc/default/grub
   
 sudo update-grub
   
+  containerd config default > /etc/containerd/config.toml 
+
+sed -i 's/SystemdCgroup = false/SystemdCgroup = true/g' /etc/containerd/config.toml 
+
+cat /etc/containerd/config.toml | grep SystemdCgroup 
+
+  
+
+# Restart containerd 
+
+sudo systemctl restart containerd 
+
+cat > /etc/crictl.yaml <<- EOF 
+
+ 
+
+runtime-endpoint: unix:///run/containerd/containerd.sock 
+
+image-endpoint: unix:///run/containerd/containerd.sock 
+
+timeout: 2 
+
+debug: true 
+
+pull-image-on-create: false 
+
+EOF 
+ 
+  
     
 
  # Pre-configuration on all node
